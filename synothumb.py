@@ -6,22 +6,61 @@
 # Released:     www.phillips321.co.uk
 # Dependencies: PIL, libjpeg, libpng
 # Supports:     jpg, bmp, png, tif
-# Version:      1.0
+# Version:      2.0
 # ChangeLog:
+#       v2.0 - multithreaded
 #       v1.0 - First release
 # ToDo:
 #       add movie support
-import os,sys,Image
-#import Queue,threading
-#queue = Queue.Queue
-extensions=['.jpg','.png','.jpeg','.tif','.bmp']
-skipfiles=['.DS_Store','.apdisk','Thumbs.db']
+#       add CR2 support?
+import os,sys,Image,Queue,threading,time
+startTime=time.time()
+NumOfThreads=8  # Number of threads
+extensions=['.jpg','.png','.jpeg','.tif','.bmp'] #possibly add cr2 and other raw types?
+skipfiles=['.DS_Store','.apdisk','Thumbs.db'] # file to skip  (not yet implemented)
+xlName="SYNOPHOTO:THUMB_XL.jpg" ; xlSize=(1280,1280) #XtraLarge
+lName="SYNOPHOTO:THUMB_L.jpg" ; lSize=(800,800) #Large
+bName="SYNOPHOTO:THUMB_B.jpg" ; bSize=(640,640) #Big
+mName="SYNOPHOTO:THUMB_M.jpg" ; mSize=(320,320) #Medium
+sName="SYNOPHOTO:THUMB_S.jpg" ; sSize=(160,160) #Small
+
+queue = Queue.Queue()
 try:
     rootdir=sys.argv[1]
 except:
     print "Usage: %s directory" % sys.argv[0]
     sys.exit(0)
 imageList=[]
+
+
+# class that performs the thumbnail creation for the image
+class convertImage(threading.Thread):
+    def __init__(self,queue):
+        threading.Thread.__init__(self)
+        self.queue=queue
+
+    def run(self):
+        while True:
+            self.imagePath=self.queue.get()
+            self.imageDir,self.imageName = os.path.split(self.imagePath)
+            self.thumbDir=os.path.join(self.imageDir,"@eaDir",self.imageName)
+            if os.path.isdir(self.thumbDir) != 1:
+                try:os.makedirs(self.thumbDir)
+                except:continue
+            self.image=Image.open(self.imagePath)
+            if os.path.isfile(os.path.join(self.thumbDir,xlName)) != 1:
+                print "Now working on %s" % (self.imagePath)
+                self.image.thumbnail(xlSize)
+                self.image.save(os.path.join(self.thumbDir,xlName))
+                self.image.thumbnail(lSize)
+                self.image.save(os.path.join(self.thumbDir,lName))
+                self.image.thumbnail(bSize)
+                self.image.save(os.path.join(self.thumbDir,bName))
+                self.image.thumbnail(mSize)
+                self.image.save(os.path.join(self.thumbDir,mName))
+                self.image.thumbnail(sSize)
+                self.image.save(os.path.join(self.thumbDir,sName))
+            self.queue.task_done()
 
 # Finds all images of type in extensions array
 for path, subFolders, files in os.walk(rootdir):
@@ -33,31 +72,28 @@ for path, subFolders, files in os.walk(rootdir):
                     print "Now searching thumbs for %s " % (os.path.join(path,file))
                     imageList.append(os.path.join(path,file))
 
-xlName="SYNOPHOTO:THUMB_XL.jpg" ; xlSize=(1280,1280) #XtraLarge
-lName="SYNOPHOTO:THUMB_L.jpg" ; lSize=(800,800) #Large
-bName="SYNOPHOTO:THUMB_B.jpg" ; bSize=(640,640) #Big
-mName="SYNOPHOTO:THUMB_M.jpg" ; mSize=(320,320) #Medium
-sName="SYNOPHOTO:THUMB_S.jpg" ; sSize=(160,160) #Small
+#spawn a pool of threads
+for i in range(NumOfThreads): #number of threads
+    t=convertImage(queue)
+    t.setDaemon(True)
+    t.start()
 
-def convertImage(imagePath):
-    image=Image.open(imagePath)
-    if os.path.isfile(os.path.join(thumbDir,xlName)) != 1:
-        print "Now working on %s" % (imagePath)
-        image.thumbnail(xlSize, Image.ANTIALIAS)
-        image.save(os.path.join(thumbDir,xlName))
-        image.thumbnail(lSize, Image.ANTIALIAS)
-        image.save(os.path.join(thumbDir,lName))
-        image.thumbnail(bSize, Image.ANTIALIAS)
-        image.save(os.path.join(thumbDir,bName))
-        image.thumbnail(mSize, Image.ANTIALIAS)
-        image.save(os.path.join(thumbDir,mName))
-        image.thumbnail(sSize, Image.ANTIALIAS)
-        image.save(os.path.join(thumbDir,sName))
 
 for imagePath in imageList:
-    imageDir,imageName = os.path.split(imagePath)
-    thumbDir=os.path.join(imageDir,"@eaDir",imageName)
-    if os.path.isdir(thumbDir) != 1:
-        try:os.makedirs(thumbDir)
-        except:continue
-    convertImage(imagePath)
+    queue.put(imagePath)
+
+queue.join()
+
+endTime=time.time()
+print "Time to complete %i" % (endTime-startTime)
+
+
+
+
+
+
+
+
+
+
+
