@@ -6,8 +6,9 @@
 # Dependencies: ffmpeg, libmp3lame0, libavcodec-extra-53
 # Supports: jpg, bmp, png, tif
 #			mov, avi
-    version=2.0
+    version=2.1
 # ChangeLog:
+#	v2.1 - Changed names to use _ instead of : 
 #	v2.0 - Large rewrite and support added for BMP, 
 #	v1.1 - now supports tif images
 #	v1.0 - now supports video conversion (mov and avi)
@@ -18,11 +19,11 @@
 #	add 3gp to mp4 _M and _MOBILE support
 #	add m4v and mts and mpg to flv support
 f_settings(){ #settings for the program
-	XLname="SYNOPHOTO:THUMB_XL.jpg" ; XLsize="1280x1280";
-	Lname="SYNOPHOTO:THUMB_L.jpg" ; Lsize="800x800";
-	Bname="SYNOPHOTO:THUMB_B.jpg" ; Bsize="640x640";
-	Mname="SYNOPHOTO:THUMB_M.jpg" ; Msize="320x320";
-	Sname="SYNOPHOTO:THUMB_S.jpg" ; Ssize="160x160";
+	XLname="SYNOPHOTO_THUMB_XL.jpg" ; XLsize="1280x1280";
+	Lname="SYNOPHOTO_THUMB_L.jpg" ; Lsize="800x800";
+	Bname="SYNOPHOTO_THUMB_B.jpg" ; Bsize="640x640";
+	Mname="SYNOPHOTO_THUMB_M.jpg" ; Msize="320x320";
+	Sname="SYNOPHOTO_THUMB_S.jpg" ; Ssize="160x160";
 	ORIGIFS=$IFS ; IFS=$(echo -en "\n\b")
 }
 makeline(){ #nice output
