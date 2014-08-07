@@ -6,8 +6,9 @@
 # Released:     www.phillips321.co.uk
 # Dependencies: PIL, libjpeg, libpng, dcraw, ffmpeg
 # Supports:     jpg, bmp, png, tif
-# Version:      3.0
+# Version:      3.1
 # ChangeLog:
+#       v3.1 - filename fix (_ instead of :) and improvement of rendering (antialias and quality=90 - thanks to alkopedia)
 #       v3.0 - Video support 
 #       v2.1 - CR2 raw support
 #       v2.0 - multithreaded
@@ -30,11 +31,11 @@ NumOfThreads=8  # Number of threads
 startTime=time.time()
 imageExtensions=['.jpg','.png','.jpeg','.tif','.bmp','.cr2'] #possibly add other raw types?
 videoExtensions=['.mov','.m4v']
-xlName="SYNOPHOTO:THUMB_XL.jpg" ; xlSize=(1280,1280) #XtraLarge
-lName="SYNOPHOTO:THUMB_L.jpg" ; lSize=(800,800) #Large
-bName="SYNOPHOTO:THUMB_B.jpg" ; bSize=(640,640) #Big
-mName="SYNOPHOTO:THUMB_M.jpg" ; mSize=(320,320) #Medium
-sName="SYNOPHOTO:THUMB_S.jpg" ; sSize=(160,160) #Small
+xlName="SYNOPHOTO_THUMB_XL.jpg" ; xlSize=(1280,1280) #XtraLarge
+lName="SYNOPHOTO_THUMB_L.jpg" ; lSize=(800,800) #Large
+bName="SYNOPHOTO_THUMB_B.jpg" ; bSize=(640,640) #Big
+mName="SYNOPHOTO_THUMB_M.jpg" ; mSize=(320,320) #Medium
+sName="SYNOPHOTO_THUMB_S.jpg" ; sSize=(160,160) #Small
 
 #########################################################################
 # Images Class
@@ -64,16 +65,16 @@ class convertImage(threading.Thread):
                 else:
                     self.image=Image.open(self.imagePath)
     
-                self.image.thumbnail(xlSize)
-                self.image.save(os.path.join(self.thumbDir,xlName))
-                self.image.thumbnail(lSize)
-                self.image.save(os.path.join(self.thumbDir,lName))
-                self.image.thumbnail(bSize)
-                self.image.save(os.path.join(self.thumbDir,bName))
-                self.image.thumbnail(mSize)
-                self.image.save(os.path.join(self.thumbDir,mName))
-                self.image.thumbnail(sSize)
-                self.image.save(os.path.join(self.thumbDir,sName))
+                self.image.thumbnail(xlSize, Image.ANTIALIAS)
+                self.image.save(os.path.join(self.thumbDir,xlName), quality=90)
+                self.image.thumbnail(lSize, Image.ANTIALIAS)
+                self.image.save(os.path.join(self.thumbDir,lName), quality=90)
+                self.image.thumbnail(bSize, Image.ANTIALIAS)
+                self.image.save(os.path.join(self.thumbDir,bName), quality=90)
+                self.image.thumbnail(mSize, Image.ANTIALIAS)
+                self.image.save(os.path.join(self.thumbDir,mName), quality=90)
+                self.image.thumbnail(sSize, Image.ANTIALIAS)
+                self.image.save(os.path.join(self.thumbDir,sName), quality=90)
             self.queueIMG.task_done()
 
 #########################################################################
