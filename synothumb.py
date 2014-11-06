@@ -6,8 +6,9 @@
 # Released:     www.phillips321.co.uk
 # Dependencies: PIL, libjpeg, libpng, dcraw, ffmpeg
 # Supports:     jpg, bmp, png, tif
-# Version:      3.1
+# Version:      4.0
 # ChangeLog:
+#       v4.0 - addition of autorate (thanks MArkus Luisser)
 #       v3.1 - filename fix (_ instead of :) and improvement of rendering (antialias and quality=90 - thanks to alkopedia)
 #       v3.0 - Video support 
 #       v2.1 - CR2 raw support
@@ -64,7 +65,29 @@ class convertImage(threading.Thread):
                     self.image=Image.open(self.raw)
                 else:
                     self.image=Image.open(self.imagePath)
+
+                ###### Check image orientation and rotate if necessary
+                ## code adapted from: http://www.lifl.fr/~riquetd/auto-rotating-pictures-using-pil.html
+                self.exif = self.image._getexif()
     
+                if not self.exif:
+                    return False
+            
+                self.orientation_key = 274 # cf ExifTags
+                if self.orientation_key in self.exif:
+                    self.orientation = self.exif[self.orientation_key]
+            
+                    rotate_values = {
+                        3: 180,
+                        6: 270,
+                        8: 90
+                    }
+            
+                    if self.orientation in rotate_values:
+                        self.image=self.image.rotate(rotate_values[self.orientation])
+
+                #### end of orientation part
+
                 self.image.thumbnail(xlSize, Image.ANTIALIAS)
                 self.image.save(os.path.join(self.thumbDir,xlName), quality=90)
                 self.image.thumbnail(lSize, Image.ANTIALIAS)
@@ -186,10 +209,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
